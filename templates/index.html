@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Network Traffic Analysis & Intrusion Detection System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark-theme">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+        <div class="brand">
+            <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="brand-text">
+                <h1>AI Network Traffic Analysis</h1>
+                <span class="subtext">Intrusion Detection System (NIDS) & SOC Dashboard</span>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <div class="status-badge" id="monitoring-badge">
+                <span class="dot idle"></span>
+                <span id="monitoring-text">Monitoring: IDLE</span>
+            </div>
+            <div class="status-badge active">
+                <span class="dot active"></span>
+                <span>RF Model: READY</span>
+            </div>
+            <div class="status-badge active">
+                <i class="fa-solid fa-database"></i>
+                <span>SQLite: CONNECTED</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn btn-demo" id="btn-demo-mode">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Demo Mode
+            </button>
+            <button class="btn btn-primary" id="btn-open-generate">
+                <i class="fa-solid fa-bolt"></i> Generate Traffic
+            </button>
+            <button class="btn btn-success" id="btn-toggle-monitoring">
+                <i class="fa-solid fa-play"></i> Start Monitoring
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-link active" data-target="view-dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#analysis" class="nav-link" data-target="view-analysis">
+                    <i class="fa-solid fa-network-wired"></i>
+                    <span>Traffic Analysis</span>
+                </a>
+                <a href="#alerts" class="nav-link" data-target="view-alerts">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Intrusion Alerts</span>
+                    <span class="badge badge-alert-count" id="nav-alert-badge">0</span>
+                </a>
+                <a href="#performance" class="nav-link" data-target="view-performance">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Model Performance</span>
+                </a>
+                <a href="#about" class="nav-link" data-target="view-about">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>About / Case Study</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="academic-tag">
+                    <i class="fa-solid fa-laptop-code"></i>
+                    <div>
+                        <strong>B.Tech CSE Project</strong>
+                        <p>Computer Networks Case Study</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="content-area">
+
+            <!-- ================= VIEW 1: DASHBOARD ================= -->
+            <section id="view-dashboard" class="page-view active">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Security Operations Overview</h2>
+                    <div class="last-updated">
+                        <span>Live Sync: <strong id="live-time-str">--:--:--</strong></span>
+                        <button class="btn-icon" id="btn-refresh-dashboard" title="Refresh Data"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- CARDS GRID -->
+                <div class="cards-grid">
+                    <div class="stat-card blue">
+                        <div class="card-icon"><i class="fa-solid fa-arrow-right-arrows-left"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Total Traffic Flows</span>
+                            <h3 class="card-value" id="card-total-traffic">0</h3>
+                            <span class="card-subtext">Monitored Network Records</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card green">
+                        <div class="card-icon"><i class="fa-solid fa-shield-check"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Normal Traffic</span>
+                            <h3 class="card-value" id="card-normal-traffic">0</h3>
+                            <span class="card-subtext">Legitimate Flow Packets</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card orange">
+                        <div class="card-icon"><i class="fa-solid fa-bug"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Detected Attacks</span>
+                            <h3 class="card-value" id="card-detected-attacks">0</h3>
+                            <span class="card-subtext">Port Scan, DoS, Brute Force</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card red">
+                        <div class="card-icon"><i class="fa-solid fa-bell-exclamation"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Critical Security Alerts</span>
+                            <h3 class="card-value" id="card-critical-alerts">0</h3>
+                            <span class="card-subtext">Active High Risk Threats</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS GRID -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Traffic Classification</h3>
+                            <span class="chart-sub">Normal vs Attack Categories</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-traffic-class"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-wave-square"></i> Traffic Rate Over Time</h3>
+                            <span class="chart-sub">Flow Volume & Anomaly Trends</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-traffic-time"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-chart-column"></i> Attack Severity Breakdown</h3>
+                            <span class="chart-sub">Low, Medium, High, Critical</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-attack-severity"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-diagram-project"></i> Protocol Distribution</h3>
+                            <span class="chart-sub">TCP vs UDP vs ICMP</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-protocol-dist"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLES SECTION GRID -->
+                <div class="tables-grid">
+                    <!-- Live Traffic Table -->
+                    <div class="table-card flex-2">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-list-check"></i> Recent Network Traffic Logs</h3>
+                            <div class="table-actions">
+                                <select id="filter-traffic-type" class="form-select-sm">
+                                    <option value="ALL">All Traffic Types</option>
+                                    <option value="NORMAL">Normal</option>
+                                    <option value="PORT_SCAN">Port Scan</option>
+                                    <option value="DOS">DoS</option>
+                                    <option value="BRUTE_FORCE">Brute Force</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="table-traffic">
+                                <thead>
+                                    <tr>
+                                        <th>TIME</th>
+                                        <th>SOURCE IP</th>
+                                        <th>DESTINATION IP</th>
+                                        <th>PROTOCOL</th>
+                                        <th>PACKETS</th>
+                                        <th>BYTES</th>
+                                        <th>PREDICTION</th>
+                                        <th>CONFIDENCE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Active Alerts -->
+                    <div class="table-card flex-1">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-triangle-exclamation"></i> Active Threats</h3>
+                            <a href="#alerts" class="link-btn text-muted nav-link-trigger" data-target="view-alerts">View All</a>
+                        </div>
+                        <div class="table-wrapper">
+                            <div class="quick-alerts-list" id="quick-alerts-container">
+                                <!-- Dynamic items -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 2: TRAFFIC ANALYSIS ================= -->
+            <section id="view-analysis" class="page-view">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-network-wired"></i> Deep Traffic Inspection & Flow Metrics</h2>
+                </div>
+
+                <!-- ANALYSIS METRICS CARDS -->
+                <div class="cards-grid">
+                    <div class="stat-card glass">
+                        <div class="card-icon"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Avg Packets / Flow</span>
+                            <h3 class="card-value" id="ana-avg-packets">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="card-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Avg Bytes / Sec</span>
+                            <h3 class="card-value" id="ana-avg-bytes">0 B/s</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="card-icon"><i class="fa-solid fa-user-ninja"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Suspicious Sources</span>
+                            <h3 class="card-value" id="ana-suspicious-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="card-icon"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="card-info">
+                            <span class="card-title">Most Frequent Threat</span>
+                            <h3 class="card-value" id="ana-top-attack">None</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tables-grid">
+                    <!-- Top Source IPs -->
+                    <div class="table-card flex-1">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-laptop-medical"></i> Top Source IPs</h3>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="table-top-sources">
+                                <thead>
+                                    <tr>
+                                        <th>SOURCE IP</th>
+                                        <th>FLOW COUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Top Destination IPs -->
+                    <div class="table-card flex-1">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-server"></i> Top Target Destination IPs</h3>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="table-top-dests">
+                                <thead>
+                                    <tr>
+                                        <th>DESTINATION IP</th>
+                                        <th>FLOW COUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 3: INTRUSION ALERTS ================= -->
+            <section id="view-alerts" class="page-view">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-shield-cat"></i> Intrusion Alert Management Center</h2>
+                </div>
+
+                <!-- FILTER BAR -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label><i class="fa-solid fa-filter"></i> Attack Type:</label>
+                        <select id="alert-filter-attack" class="form-select">
+                            <option value="ALL">All Attack Types</option>
+                            <option value="PORT_SCAN">Port Scan</option>
+                            <option value="DOS">DoS</option>
+                            <option value="BRUTE_FORCE">Brute Force</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fa-solid fa-layer-group"></i> Severity:</label>
+                        <select id="alert-filter-severity" class="form-select">
+                            <option value="ALL">All Severities</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fa-solid fa-toggle-on"></i> Status:</label>
+                        <select id="alert-filter-status" class="form-select">
+                            <option value="ALL">All Statuses</option>
+                            <option value="ACTIVE" selected>ACTIVE</option>
+                            <option value="RESOLVED">RESOLVED</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="table-full-alerts">
+                            <thead>
+                                <tr>
+                                    <th>ALERT ID</th>
+                                    <th>TIME</th>
+                                    <th>SOURCE IP</th>
+                                    <th>ATTACK TYPE</th>
+                                    <th>SEVERITY</th>
+                                    <th>CONFIDENCE</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic alert rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 4: MODEL PERFORMANCE ================= -->
+            <section id="view-performance" class="page-view">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-brain"></i> Machine Learning Model Performance</h2>
+                </div>
+
+                <div class="model-summary-box">
+                    <div class="model-badge-lg">
+                        <i class="fa-solid fa-tree"></i>
+                        <div>
+                            <h3>Random Forest Classifier</h3>
+                            <p>Ensemble Learning Algorithm (100 Trees, Max Depth 12)</p>
+                        </div>
+                    </div>
+                    <div class="model-desc">
+                        <p><i class="fa-solid fa-quote-left"></i> Machine learning identifies patterns in network traffic that differ from normal network behavior by evaluating non-linear flow feature interactions. <i class="fa-solid fa-quote-right"></i></p>
+                    </div>
+                </div>
+
+                <!-- METRICS GRID -->
+                <div class="cards-grid">
+                    <div class="stat-card card-metric">
+                        <span class="metric-label">Accuracy</span>
+                        <h3 class="metric-val" id="metric-accuracy">--%</h3>
+                    </div>
+                    <div class="stat-card card-metric">
+                        <span class="metric-label">Weighted Precision</span>
+                        <h3 class="metric-val" id="metric-precision">--%</h3>
+                    </div>
+                    <div class="stat-card card-metric">
+                        <span class="metric-label">Weighted Recall</span>
+                        <h3 class="metric-val" id="metric-recall">--%</h3>
+                    </div>
+                    <div class="stat-card card-metric">
+                        <span class="metric-label">F1-Score</span>
+                        <h3 class="metric-val" id="metric-f1">--%</h3>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <!-- Confusion Matrix Card -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-table-cells"></i> Confusion Matrix</h3>
+                            <span class="chart-sub">Actual vs Predicted Classifications</span>
+                        </div>
+                        <div class="cm-wrapper" id="confusion-matrix-grid">
+                            <!-- Render confusion matrix grid -->
+                        </div>
+                    </div>
+
+                    <!-- Feature Importances Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-chart-bar"></i> Feature Importance Breakdown</h3>
+                            <span class="chart-sub">Weight of Features in Decision Trees</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-feature-importance"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODEL PARAMS METADATA TABLE -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3><i class="fa-solid fa-circle-info"></i> Dataset & Training Specs</h3>
+                    </div>
+                    <div class="params-grid">
+                        <div class="param-item">
+                            <span class="param-key">Training Samples:</span>
+                            <span class="param-val" id="param-train-count">--</span>
+                        </div>
+                        <div class="param-item">
+                            <span class="param-key">Testing Samples:</span>
+                            <span class="param-val" id="param-test-count">--</span>
+                        </div>
+                        <div class="param-item">
+                            <span class="param-key">Target Classes:</span>
+                            <span class="param-val">4 (NORMAL, PORT_SCAN, DOS, BRUTE_FORCE)</span>
+                        </div>
+                        <div class="param-item">
+                            <span class="param-key">Features Used:</span>
+                            <span class="param-val">11 Flow Feature Attributes</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 5: ABOUT / CASE STUDY ================= -->
+            <section id="view-about" class="page-view">
+                <div class="page-header">
+                    <h2><i class="fa-solid fa-graduation-cap"></i> Case Study & Computer Networks Project Documentation</h2>
+                </div>
+
+                <div class="case-study-grid">
+                    <div class="cs-card">
+                        <h3><i class="fa-solid fa-triangle-exclamation"></i> Problem Statement</h3>
+                        <p>Traditional Rule-Based Intrusion Detection Systems (IDS) rely on static signatures (SNORT rules). They fail to detect zero-day anomalies, modified attack vectors, and high-velocity network flow shifts. Signature upkeep is costly and inefficient in high-throughput enterprise networks.</p>
+                    </div>
+
+                    <div class="cs-card">
+                        <h3><i class="fa-solid fa-lightbulb"></i> Proposed AI Solution</h3>
+                        <p>An AI-Assisted Network Intrusion Detection System that converts continuous packet flows into statistical metric vectors (Packets/Sec, Bytes/Sec, Connection Duration, Failed Attempts) and utilizes a trained Random Forest Classifier to distinguish normal baseline traffic from malicious attacks with high confidence.</p>
+                    </div>
+                </div>
+
+                <!-- ARCHITECTURE DIAGRAM SECTION -->
+                <div class="architecture-box">
+                    <h3><i class="fa-solid fa-sitemap"></i> System Architecture Flow</h3>
+                    <div class="arch-flow">
+                        <div class="arch-step">
+                            <i class="fa-solid fa-network-wired"></i>
+                            <strong>1. Traffic Collection</strong>
+                            <span>Synthetic Flow Generator / Packet Monitoring</span>
+                        </div>
+                        <div class="arch-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="arch-step">
+                            <i class="fa-solid fa-gears"></i>
+                            <strong>2. Preprocessing</strong>
+                            <span>Protocol Mapping & Feature Engineering</span>
+                        </div>
+                        <div class="arch-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="arch-step">
+                            <i class="fa-solid fa-brain"></i>
+                            <strong>3. ML Classifier</strong>
+                            <span>Random Forest Model Inference</span>
+                        </div>
+                        <div class="arch-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="arch-step">
+                            <i class="fa-solid fa-shield-virus"></i>
+                            <strong>4. Alerting & DB</strong>
+                            <span>SQLite Logging & Threat Severity Mapping</span>
+                        </div>
+                        <div class="arch-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="arch-step">
+                            <i class="fa-solid fa-desktop"></i>
+                            <strong>5. SOC Dashboard</strong>
+                            <span>Real-Time Chart.js Visualizations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIVA / PROFESSOR Q&A ACCORDION -->
+                <div class="viva-section">
+                    <h3><i class="fa-solid fa-clipboard-question"></i> Academic Viva & Examination Q&A</h3>
+                    <p class="subtext">Expected questions from Computer Networks professors with ideal CSE student responses:</p>
+
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span>Q1: What is the difference between Signature-based IDS and Anomaly-based IDS?</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="accordion-body">
+                                <p><strong>Answer:</strong> Signature-based IDS compares network packets against known patterns/signatures in a database (like anti-virus). It cannot detect new zero-day threats. Anomaly-based IDS (like our AI model) builds a baseline model of normal network traffic behavior and flags any statistically significant deviation as a potential intrusion.</p>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span>Q2: Why did you choose Random Forest algorithm over simple Decision Trees or Logistic Regression?</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="accordion-body">
+                                <p><strong>Answer:</strong> Random Forest is an ensemble learning method that constructs multiple decision trees and merges their predictions via majority voting. It handles non-linear network feature correlations effectively, prevents overfitting, is resilient to noisy network telemetry, and provides out-of-the-box feature importance scores.</p>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span>Q3: What key network features are most crucial for detecting DoS attacks vs Port Scans?</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="accordion-body">
+                                <p><strong>Answer:</strong> For <strong>DoS attacks</strong>, packet volume features like <code>packets_per_second</code> and <code>bytes_per_second</code> dominate. For <strong>Port Scanning</strong>, low total bytes per flow coupled with extremely short <code>connection_duration</code> and rapid sequential <code>destination_port</code> access patterns are key indicators.</p>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span>Q4: How does your system calculate severity levels?</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="accordion-body">
+                                <p><strong>Answer:</strong> Severity is assigned based on threat potential: NORMAL flows receive LOW severity, Brute-Force authentication attacks receive MEDIUM severity, Port-Scan reconnaissance receives HIGH severity, and high-volume DoS floods that threaten availability receive CRITICAL severity.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- ================= MODALS & DRAWERS ================= -->
+
+    <!-- GENERATE TRAFFIC MODAL -->
+    <div class="modal-backdrop" id="modal-generate">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-bolt"></i> Generate Synthetic Traffic Records</h3>
+                <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Number of Traffic Flows:</label>
+                    <input type="number" id="gen-count" class="form-control" value="10" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Traffic Pattern Type:</label>
+                    <select id="gen-type" class="form-select">
+                        <option value="RANDOM">Random Mix (Normal & Attack Patterns)</option>
+                        <option value="NORMAL">Normal Traffic Only</option>
+                        <option value="PORT_SCAN">Port Scan Pattern</option>
+                        <option value="DOS">Denial of Service (DoS) Pattern</option>
+                        <option value="BRUTE_FORCE">Brute Force Pattern</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-submit-generate">Generate & Analyze</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO MODE DRAWER -->
+    <div class="demo-drawer" id="demo-drawer">
+        <div class="drawer-header">
+            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Automated Demonstration Mode</h3>
+            <button class="btn-close" id="btn-close-demo"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="drawer-body">
+            <div class="demo-steps-bar">
+                <div class="demo-step-pill active" id="pill-step-1">1. Flow Gen</div>
+                <div class="demo-step-pill" id="pill-step-2">2. Extract</div>
+                <div class="demo-step-pill" id="pill-step-3">3. ML Predict</div>
+                <div class="demo-step-pill" id="pill-step-4">4. Alert & DB</div>
+            </div>
+
+            <div class="terminal-box" id="demo-terminal-log">
+                <p class="term-line sys">[SYSTEM READY] Click "Start Step Workflow" to run automated end-to-end intrusion detection flow.</p>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn btn-primary" id="btn-run-demo-flow">Run Full Demo Scenario</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
